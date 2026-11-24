@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c35">
+  <title>CampusGuide UAT | Find your way</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{--green:#123c35;--green2:#1d6655;--mint:#e9f4ef;--ink:#172622;--muted:#66756f;--line:#e4ebe7;--paper:#f7faf8;--white:#fff;--gold:#f2b84b;--red:#b7463c}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink)}
+    button,input,select{font:inherit}button{cursor:pointer}
+    .topbar{height:72px;background:var(--green);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 1240px)/2));gap:16px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.4px}.brandmark{width:38px;height:38px;border-radius:12px;background:#d6eee3;color:var(--green);display:grid;place-items:center;font-size:19px}
+    .brand small{display:block;font-size:10px;font-weight:600;letter-spacing:1.5px;color:#b9d6ca;margin-top:2px}
+    .toplinks{display:flex;gap:8px}.toplinks button{border:0;background:transparent;color:#dcebe5;padding:10px 13px;border-radius:9px;font-size:13px}.toplinks button.active,.toplinks button:hover{background:#ffffff1c;color:white}
+    .wrap{max-width:1240px;margin:0 auto;padding:30px 22px 50px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:23px}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:1.7px;color:var(--green2);text-transform:uppercase}.hero h1{font-size:clamp(27px,4vw,39px);line-height:1.08;letter-spacing:-1.5px;margin:8px 0}.hero p{margin:0;color:var(--muted);font-size:14px;max-width:590px;line-height:1.6}
+    .status{display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);padding:10px 13px;border-radius:999px;color:var(--muted);font-size:12px;white-space:nowrap}.dot{width:8px;height:8px;border-radius:50%;background:#c3ccc7}.dot.on{background:#20a36b;box-shadow:0 0 0 4px #20a36b20}
+    .layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:stretch}.panel,.mapcard,.info-card{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px #183b2b08}
+    .panel{padding:20px}.panel h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 17px}
+    .fieldlabel{display:block;font-size:11px;font-weight:750;color:#53635c;margin:15px 0 7px}.searchbox{position:relative}.searchbox input{width:100%;border:1px solid var(--line);background:#fbfdfc;border-radius:11px;padding:12px 13px;outline:none;font-size:13px}.searchbox input:focus{border-color:#72a995;box-shadow:0 0 0 3px #1d66551a}
+    .btn{border:0;border-radius:11px;padding:12px 14px;font-weight:750;font-size:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}.btn-primary{background:var(--green);color:white}.btn-primary:hover{background:#205b4e}.btn-soft{background:var(--mint);color:var(--green)}.btn-outline{background:white;border:1px solid var(--line);color:var(--ink)}.btn-block{width:100%;margin-top:9px}
+    .quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.quick button{background:#f6faf7;border:1px solid var(--line);border-radius:10px;text-align:left;padding:11px;font-size:11px;color:#30443b}.quick b{display:block;font-size:12px;margin-bottom:3px}.quick span{color:var(--muted);font-size:10px}
+    .notice{margin-top:16px;border-radius:12px;background:#fff8e9;border:1px solid #f3e4bf;padding:12px;font-size:11px;line-height:1.5;color:#72551b}.notice strong{display:block;margin-bottom:3px}
+    .mapcard{overflow:hidden;position:relative;min-height:580px}.maphead{display:flex;align-items:center;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--line);gap:10px}.maphead strong{font-size:13px}.maphead span{font-size:11px;color:var(--muted)}#map{height:520px;width:100%;background:#e8efeb}.maptools{position:absolute;z-index:500;top:75px;right:14px;display:flex;flex-direction:column;gap:8px}.maptools button{width:40px;height:40px;border:1px solid var(--line);border-radius:12px;background:white;box-shadow:0 4px 12px #17262212;color:var(--green);font-size:17px}
+    .maphint{position:absolute;z-index:500;bottom:14px;left:14px;max-width:310px;background:#ffffffed;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:11px;color:#506159;box-shadow:0 4px 16px #17262212}
+    .section{margin-top:27px}.sectionhead{display:flex;align-items:end;justify-content:space-between;margin-bottom:13px}.sectionhead h2{font-size:20px;margin:0;letter-spacing:-.6px}.sectionhead p{font-size:12px;color:var(--muted);margin:5px 0 0}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.info-card{padding:17px}.icon{width:36px;height:36px;border-radius:11px;background:var(--mint);display:grid;place-items:center;color:var(--green);font-size:17px;margin-bottom:13px}.info-card h3{font-size:14px;margin:0 0 6px}.info-card p{font-size:11px;line-height:1.55;color:var(--muted);margin:0}
+    .feesbox{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.fee-main,.fee-side{padding:19px}.fee-main h3,.fee-side h3{margin:0 0 7px;font-size:15px}.fee-main p,.fee-side p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.fee-side{background:#f0f7f3;border:1px solid #dcece3;border-radius:18px}
+    .footer{border-top:1px solid var(--line);margin-top:35px;padding-top:18px;display:flex;justify-content:space-between;gap:20px;color:#7a8982;font-size:10px;line-height:1.5}
+    .modalback{position:fixed;inset:0;background:#10231f80;z-index:2000;display:none;align-items:center;justify-content:center;padding:18px}.modalback.show{display:flex}.modal{width:min(460px,100%);background:white;border-radius:18px;padding:22px;box-shadow:0 20px 60px #0003}.modal h3{margin:0 0 8px}.modal p{font-size:12px;line-height:1.6;color:var(--muted)}.modalactions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+    .leaflet-popup-content{font-family:inherit;font-size:12px}.leaflet-control-attribution{font-size:9px!important}
+    @media(max-width:850px){.layout{grid-template-columns:1fr}.panel{order:2}.mapcard{order:1;min-height:460px}#map{height:400px}.maptools{top:65px}.cards{grid-template-columns:1fr 1fr}.hero{align-items:flex-start;flex-direction:column}.status{align-self:flex-start}}
+    @media(max-width:540px){.topbar{height:62px;padding:0 15px}.toplinks button{padding:8px;font-size:11px}.wrap{padding:23px 14px 35px}.mapcard{min-height:420px}.maphead{align-items:flex-start;flex-direction:column}#map{height:350px}.cards,.feesbox{grid-template-columns:1fr}.footer{flex-direction:column}.quick{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brandmark">⌖</div><div>CampusGuide<small>UNIVERSITY OF AFRICA, TORU-ORUA</small></div></div>
+  <nav class="toplinks"><button class="active" data-scroll="campus">Explore</button><button data-scroll="fees">Fees & Safety</button></nav>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <div><div class="eyebrow">Your campus, made easier</div><h1>Find your way around UAT.</h1><p>Explore the campus, see your live position and plan a route to your destination. Campus details are being verified with the university.</p></div>
+    <div class="status"><span class="dot" id="gpsDot"></span><span id="gpsStatus">Location not shared</span></div>
+  </section>
+
+  <section class="layout" id="campus">
+    <aside class="panel">
+      <h2>Where do you want to go?</h2>
+      <p class="sub">Share your location, then choose a destination on the map or search for a campus place.</p>
+      <button class="btn btn-primary btn-block" id="locateBtn">◎ &nbsp; Show my current location</button>
+      <label class="fieldlabel" for="destination">DESTINATION</label>
+      <div class="searchbox"><input id="destination" type="text" placeholder="Search a faculty, office or place"></div>
+      <div class="quick">
+        <button data-place="University main campus"><b>⌂ Main campus</b><span>Campus entrance area</span></button>
+        <button data-place="Faculty of Agriculture"><b>♧ Agriculture</b><span>Faculty location</span></button>
+        <button data-place="Faculty of Arts and Education"><b>▤ Arts & Education</b><span>Faculty location</span></button>
+        <button data-place="Faculty of Basic and Applied Sciences"><b>⚗ Basic & Applied</b><span>Faculty location</span></button>
+        <button data-place="Faculty of Social Sciences"><b>◎ Social Sciences</b><span>Faculty location</span></button>
+        <button data-place="Faculty of Management Sciences"><b>▦ Management</b><span>Faculty location</span></button>
+      </div>
+      <button class="btn btn-soft btn-block" id="clearBtn">Clear destination</button>
+      <div class="notice"><strong>Campus map verification in progress</strong>Faculty names are drawn from UAT's public website. Their exact building coordinates and internal routes still need an on-campus survey. Select a point on the map to test route hand-off.</div>
+    </aside>
+
+    <div class="mapcard">
+      <div class="maphead"><div><strong>UAT campus map</strong><br><span>Toru-Orua, Bayelsa State, Nigeria</span></div><span id="mapMessage">Tap the map to set a destination</span></div>
+      <div id="map" aria-label="Interactive campus map"></div>
+      <div class="maptools"><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomOut" aria-label="Zoom out">−</button><button id="recenter" aria-label="Center map">◎</button></div>
+      <div class="maphint">Blue dot = your live position. Tap any point on the map to choose a destination, then request walking directions.</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sectionhead"><div><h2>Explore campus services</h2><p>Campus directory categories planned for the verified map.</p></div></div>
+    <div class="cards">
+      <article class="info-card"><div class="icon">⌂</div><h3>Faculties & departments</h3><p>Find faculty buildings, departments, dean's offices and lecture spaces.</p></article>
+      <article class="info-card"><div class="icon">▣</div><h3>Administrative offices</h3><p>Locate admissions, registry, bursary, student affairs and records offices.</p></article>
+      <article class="info-card"><div class="icon">＋</div><h3>Student facilities</h3><p>Find the library, ICT centre, health services, hostels and campus amenities.</p></article>
+    </div>
+  </section>
+
+  <section class="section" id="fees">
+    <div class="sectionhead"><div><h2>Fees & payment safety</h2><p>Check the source before sending money.</p></div></div>
+    <div class="feesbox">
+      <article class="info-card fee-main"><div class="icon">₦</div><h3>Verified UAT fee information</h3><p>Fee amounts, payment references and approved payment channels will appear here after confirmation against official UAT notices or the university portal. No fee amount or bank account has been inserted into this prototype.</p><br><a class="btn btn-primary" href="https://www.uat.edu.ng/" target="_blank" rel="noopener">Visit official UAT website ↗</a></article>
+      <article class="fee-side"><h3>Before you pay</h3><p>Use payment instructions published by UAT. Confirm the session, programme and fee type. Do not rely on personal bank accounts or payment details sent through unofficial messages. Report suspicious requests to the university through its verified contact channels.</p></article>
+    </div>
+  </section>
+
+  <footer class="footer"><span>CampusGuide UAT · Early prototype · Not an official university service.</span><span>Map data © OpenStreetMap contributors · Map tiles © OpenStreetMap</span></footer>
+</main>
+
+<div class="modalback" id="modal">
+  <div class="modal"><h3 id="modalTitle">Location permission</h3><p id="modalText">Your browser needs permission to share your location. Your location stays in this browser session and is not sent to a CampusGuide server.</p><div class="modalactions"><button class="btn btn-outline" id="modalCancel">Cancel</button><button class="btn btn-primary" id="modalOk">Continue</button></div></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(() => {
+  // Publicly listed UAT campus point. This is a campus-level reference, not a building entrance.
+  const UAT = [5.10017, 6.06609];
+  const map = L.map('map', { zoomControl:false }).setView(UAT, 17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:20, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  const campusPin = L.marker(UAT).addTo(map).bindPopup('<b>University of Africa, Toru-Orua</b><br>Campus reference point. Exact building locations require verification.');
+  campusPin.openPopup();
+  let userMarker = null, accuracyCircle = null, destinationMarker = null, watchId = null, currentPosition = null, destination = null;
+  const gpsStatus = document.getElementById('gpsStatus'), gpsDot = document.getElementById('gpsDot');
+  const mapMessage = document.getElementById('mapMessage');
+  const modal = document.getElementById('modal');
+
+  function showModal(title, body, onContinue) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalText').textContent = body;
+    modal.classList.add('show');
+    document.getElementById('modalOk').onclick = () => { modal.classList.remove('show'); onContinue(); };
+  }
+  document.getElementById('modalCancel').onclick = () => modal.classList.remove('show');
+
+  function setGpsStatus(text, active) {
+    gpsStatus.textContent = text;
+    gpsDot.classList.toggle('on', !!active);
+  }
+  function startTracking() {
+    if (!('geolocation' in navigator)) {
+      setGpsStatus('GPS is not supported by this browser', false);
+      alert('This browser does not support location access.');
+      return;
+    }
+    if (!window.isSecureContext && location.hostname !== 'localhost') {
+      alert('Live location requires a secure HTTPS website. Open the deployed site over HTTPS.');
+      return;
+    }
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    setGpsStatus('Waiting for GPS signal…', false);
+    watchId = navigator.geolocation.watchPosition(pos => {
+      currentPosition = [pos.coords.latitude, pos.coords.longitude];
+      const accuracy = pos.coords.accuracy || 30;
+      if (!userMarker) {
+        userMarker = L.circleMarker(currentPosition, {radius:9,color:'#fff',weight:3,fillColor:'#2478ed',fillOpacity:1}).addTo(map).bindPopup('Your current position');
+      } else userMarker.setLatLng(currentPosition);
+      if (!accuracyCircle) accuracyCircle = L.circle(currentPosition, {radius:accuracy,color:'#2478ed',weight:1,fillOpacity:.08}).addTo(map);
+      else accuracyCircle.setLatLng(currentPosition).setRadius(accuracy);
+      setGpsStatus('Live location active', true);
+      mapMessage.textContent = 'GPS accuracy about ' + Math.round(accuracy) + ' m';
+    }, err => {
+      const messages = {1:'Location permission was denied',2:'Your location is unavailable',3:'Location request timed out'};
+      setGpsStatus(messages[err.code] || 'Unable to get location', false);
+      alert(messages[err.code] || 'Unable to get your location. Check browser permissions and GPS.');
+    }, {enableHighAccuracy:true, maximumAge:3000, timeout:20000});
+  }
+
+  function setDestination(latlng, label) {
+    destination = [latlng.lat, latlng.lng];
+    if (destinationMarker) destinationMarker.remove();
+    destinationMarker = L.marker(destination).addTo(map).bindPopup('<b>Destination</b><br>' + (label || 'Selected map point'));
+    destinationMarker.openPopup();
+    document.getElementById('destination').value = label || 'Selected map point';
+    mapMessage.textContent = 'Destination selected';
+    if (currentPosition) {
+      const km = map.distance(currentPosition, destination) / 1000;
+      mapMessage.textContent = 'Straight-line distance: ' + (km < 1 ? Math.round(km*1000)+' m' : km.toFixed(2)+' km');
+    }
+  }
+  function openDirections() {
+    if (!destination) { alert('Choose a destination by tapping the map first.'); return; }
+    if (!currentPosition) {
+      alert('Share your current location first. You can also open directions from the UAT campus reference point.');
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${destination[0]},${destination[1]}&travelmode=walking`;
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${currentPosition[0]},${currentPosition[1]}&destination=${destination[0]},${destination[1]}&travelmode=walking`;
+    window.open(url, '_blank', 'noopener');
+  }
+  map.on('click', e => {
+    setDestination(e.latlng, 'Selected map point');
+    if (confirm('Open walking directions to this point in Google Maps?')) openDirections();
+  });
+
+  document.getElementById('locateBtn').onclick = () => showModal(
+    'Share your location?',
+    'CampusGuide will use your browser GPS to show your position and update it as you move. Your location is not saved to a CampusGuide account in this prototype. You may stop sharing by closing this page or revoking browser permission.',
+    startTracking
+  );
+  document.getElementById('zoomIn').onclick = () => map.zoomIn();
+  document.getElementById('zoomOut').onclick = () => map.zoomOut();
+  document.getElementById('recenter').onclick = () => map.setView(currentPosition || UAT, 18);
+  document.getElementById('clearBtn').onclick = () => {
+    destination = null; document.getElementById('destination').value = '';
+    if (destinationMarker) destinationMarker.remove();
+    destinationMarker = null; mapMessage.textContent = 'Tap the map to set a destination';
+  };
+  document.querySelectorAll('[data-place]').forEach(btn => btn.addEventListener('click', () => {
+    const name = btn.dataset.place;
+    document.getElementById('destination').value = name;
+    alert(name + ' is listed as a destination category, but its exact building pin has not yet been verified. Please tap its actual location on the map after the campus survey.');
+  }));
+  document.getElementById('destination').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const q = e.target.value.trim();
+      if (!q) return;
+      alert('Search is ready for the verified campus directory. "' + q + '" does not yet have a confirmed building coordinate. Tap the correct point on the map to test directions.');
+    }
+  });
+  document.querySelectorAll('[data-scroll]').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('[data-scroll]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.scroll).scrollIntoView({behavior:'smooth'});
+  });
+  window.addEventListener('beforeunload', () => { if (watchId !== null) navigator.geolocation.clearWatch(watchId); });
+})();
+</script>
+</body>
+</html>
